@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 
 
 
-def sendUpdates(device, entry):
+def sendUpdates(entDevDict):
     email_server = smtplib.SMTP('smtp.gmail.com', 587)
     email_server.ehlo()
     email_server.starttls()
@@ -14,46 +14,60 @@ def sendUpdates(device, entry):
     
     
     update_email = MIMEMultipart('alternative')
-    update_email['Subject'] = "[" + device['device_type'] + ": "+ device['device_name'] + "] has a new vulnerability\n\n"
+    update_email['Subject'] = "Daily Vulnerability Dossier"
     update_email['From'] = "VulnAlertBluehack@gmail.com"
     update_email['To'] = "rlb118@pitt.edu"
     
     recipient = "rlb118@pitt.edu"
     
-    message = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-    <html>
+    message_head = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    
     <head>
     </head>
     
     <body>
     <p>
-    <b>Device:</b>
-    <blockquote>
-    {deviceName}
-    </blockquote>
     
-    <b>Date Modified:</b>
-    <blockquote>
-    {dMod}
-    </blockquote>
+    """
     
-    <b>Summary:</b>
-    <blockquote>
-    {summary}
-    </blockquote>
-    
-    <a href="{article}">Link to article:</a>
-    
-    
-    
+    message_close = """
     </p>
     </body>
+    </html>"""
     
-    """.format(deviceName=device['device_name'], dMod=entry.find("{http://scap.nist.gov/schema/vulnerability/0.4}last-modified-datetime").text, summary=entry.find("{http://scap.nist.gov/schema/vulnerability/0.4}summary").text, article=entry.find("{http://scap.nist.gov/schema/vulnerability/0.4}references").find("{http://scap.nist.gov/schema/vulnerability/0.4}reference").get('href'))
+    message = ""
+    for entry, device in entDevDict.items() :
     
-   
-    formMessage = MIMEText(message, 'html')
+        message += """
+        <b>Vulnerable Device:</b>
+        <blockquote>
+        {deviceName}
+        </blockquote>
+    
+        <b>Date Modified:</b>
+        <blockquote>
+        {dMod}
+        </blockquote>
+    
+        <b>Summary:</b>
+        <blockquote>
+        {summary}
+        </blockquote>
+    
+        <a href="{article}">Link to article:</a>
+    
+
+        
+        <hr>
+    
+        """.format(deviceName=device[0]['device_name'], dMod=entry.find("{http://scap.nist.gov/schema/vulnerability/0.4}last-modified-datetime").text, summary=entry.find("{http://scap.nist.gov/schema/vulnerability/0.4}summary").text, article=entry.find("{http://scap.nist.gov/schema/vulnerability/0.4}references").find("{http://scap.nist.gov/schema/vulnerability/0.4}reference").get('href'))
+    
+    fullMessage = message_head + message + message_close
+    
+    formMessage = MIMEText(fullMessage, 'html')
+    
+    
     
     update_email.attach(formMessage)
     
@@ -82,16 +96,15 @@ devicesList = json.loads(devices.read())
 
 vuln_list = ET.fromstring(open("nvdcve-2.0-modified.xml", 'r').read())
 
-
-
+entry_devs = {}
 for device in devicesList:
     for entry in vuln_list:
         for vuln in entry.iter("{http://scap.nist.gov/schema/vulnerability/0.4}product"):
             
             if device['device_name'] in vuln.text:
-                print("Sending update" + str(entry.attrib))
-                sendUpdates(device, entry)
-                sys.exit(0)
+                entry_devs[entry] = [device] 
+                break
 
+sendUpdates(entry_devs)
 devices.close()
 
