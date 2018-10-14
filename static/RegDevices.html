@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="RegDevices" content="width=device-width, initial-scale=1">
+<style type="text/css">
+#wrap {
+   width:600px;
+   margin:0 auto;
+}
+#left_col {
+   float:left;
+   width:300px;
+}
+#right_col {
+   float:right;
+   width:300px;
+}
+</style>
+
+
+
+<div id="wrap">
+    <div id="left_col">
+      
+        <form id="UserInput">
+        <div class="DeviceAdding">
+            <h1>Add Device</h1>
+        
+            <label for="dName"><b>Device Name:</b></label><br>
+            <input type="text" value="Device Name" name="dName" required>
+            
+            <br><br>
+
+            <label for="dType"><b>Device Type</b></label><br>
+            <input type="text" value="Device Type" name="dType" required>
+            <br>
+            <input id="clickMe" type="button" value="Add" onclick="addDev()" />
+    
+            
+            
+        </div>
+        </form>
+    
+    </div>
+    <div id="right_col">
+        <div  class="CurrDev" id="CurrentDev">
+            <h1>Current Devices</h1>
+            <p id="devices">
+            
+            </p>
+            
+        
+        </div>
+    </div>
+    
+    <script>
+    function addDev(){
+        var current = document.getElementById("devices").innerHTML;
+        var toAdd = document.getElementById("UserInput");
+        var output = "";
+        if(current!= null){
+            output += current;
+            
+        }
+        else{
+            console.leg(current);
+        }
+        if(toAdd != null){
+            output += "<b>Name: </b>" + toAdd[0].value + "     <b>Type</b>: " + toAdd[1].value + "<br>";
+        }
+        else{
+            console.log(toAdd);
+        }
+        document.getElementById("devices").innerHTML = output;
+                    
+                    
+    }
+    </script>
+    
+</div>
+</html>
+</body>
